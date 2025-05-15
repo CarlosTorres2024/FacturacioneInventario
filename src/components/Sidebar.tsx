@@ -44,8 +44,8 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
             isOpen ? "opacity-100" : "opacity-0 md:opacity-0"
           )}
         >
-          <span className="text-primary">Bill</span>
-          <span className="text-foreground">Sys</span>
+          <span className="text-primary">Factura</span>
+          <span className="text-foreground">Prueba</span>
         </h2>
         <Button 
           onClick={() => setIsOpen(false)} 
