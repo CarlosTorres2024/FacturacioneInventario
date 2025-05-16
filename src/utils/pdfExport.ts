@@ -8,6 +8,9 @@ import { toast } from "@/hooks/use-toast";
 declare module "jspdf" {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
+    lastAutoTable: {
+      finalY: number;
+    };
   }
 }
 
@@ -59,7 +62,7 @@ export const exportInvoiceToPDF = (invoice: Invoice) => {
         }
       });
       
-      const finalY = (doc as any).lastAutoTable.finalY || 120;
+      const finalY = doc.lastAutoTable.finalY || 120;
       
       // Subtotal, IVA y total
       const subtotal = invoice.total / 1.16; // Asumiendo IVA del 16%
