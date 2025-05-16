@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -54,132 +55,13 @@ interface AppContextType {
   generateProductId: () => string;
   generateClientId: () => string;
   generateInvoiceId: () => string;
+  resetDatabase: () => void;
 }
 
-// Datos iniciales
-const initialProducts: Product[] = [
-  {
-    id: "PRD001",
-    name: "Laptop HP Pavilion",
-    category: "Electrónicos",
-    stock: 15,
-    price: 12500,
-    status: "Disponible",
-  },
-  {
-    id: "PRD002",
-    name: "Monitor Dell 24''",
-    category: "Periféricos",
-    stock: 8,
-    price: 3200,
-    status: "Bajo Stock",
-  },
-  {
-    id: "PRD003",
-    name: "Teclado Logitech MX",
-    category: "Periféricos",
-    stock: 0,
-    price: 1200,
-    status: "Sin Stock",
-  },
-  {
-    id: "PRD004",
-    name: "Mouse Gaming Razer",
-    category: "Periféricos",
-    stock: 22,
-    price: 950,
-    status: "Disponible",
-  },
-  {
-    id: "PRD005",
-    name: "Impresora Canon",
-    category: "Equipos de Oficina",
-    stock: 5,
-    price: 2800,
-    status: "Bajo Stock",
-  },
-];
-
-const initialClients: Client[] = [
-  {
-    id: "CLI001",
-    name: "Empresa Tecnología S.A.",
-    email: "contacto@empresatech.com",
-    phone: "555-123-4567",
-    address: "Av. Reforma 123, CDMX",
-    totalPurchases: 45600,
-  },
-  {
-    id: "CLI002",
-    name: "Distribuidora Industrial",
-    email: "ventas@distribuidora.com",
-    phone: "555-987-6543",
-    address: "Calle Industrial 45, Monterrey",
-    totalPurchases: 28900,
-  },
-  {
-    id: "CLI003",
-    name: "Cafetería El Grano",
-    email: "info@elgrano.com",
-    phone: "555-456-7890",
-    address: "Plaza Central 78, Guadalajara",
-    totalPurchases: 12400,
-  },
-  {
-    id: "CLI004",
-    name: "Boutique Elegancia",
-    email: "boutique@elegancia.mx",
-    phone: "555-234-5678",
-    address: "Calle Moda 23, CDMX",
-    totalPurchases: 35700,
-  },
-  {
-    id: "CLI005",
-    name: "Ferretería Construcción",
-    email: "ventas@ferreteria.com",
-    phone: "555-345-6789",
-    address: "Av. Herramientas 56, Puebla",
-    totalPurchases: 19800,
-  },
-];
-
-const initialInvoices: Invoice[] = [
-  {
-    id: "INV-2025-001",
-    client: "Empresa Tecnología S.A.",
-    date: "12/05/2025",
-    total: 12500.00,
-    status: "Pagada",
-  },
-  {
-    id: "INV-2025-002",
-    client: "Distribuidora Industrial",
-    date: "10/05/2025",
-    total: 8750.50,
-    status: "Pendiente",
-  },
-  {
-    id: "INV-2025-003",
-    client: "Cafetería El Grano",
-    date: "05/05/2025",
-    total: 3200.75,
-    status: "Pagada",
-  },
-  {
-    id: "INV-2025-004",
-    client: "Boutique Elegancia",
-    date: "28/04/2025",
-    total: 6500.00,
-    status: "Cancelada",
-  },
-  {
-    id: "INV-2025-005",
-    client: "Ferretería Construcción",
-    date: "25/04/2025",
-    total: 9800.25,
-    status: "Pagada",
-  },
-];
+// Datos iniciales vacíos
+const initialProducts: Product[] = [];
+const initialClients: Client[] = [];
+const initialInvoices: Invoice[] = [];
 
 // Crear contexto
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -242,6 +124,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ? parseInt(invoices[invoices.length - 1].id.split("-")[2])
       : 0;
     return `INV-${year}-${String(lastInvoiceNumber + 1).padStart(3, "0")}`;
+  };
+
+  // Función para reiniciar la base de datos
+  const resetDatabase = () => {
+    setProducts([]);
+    setClients([]);
+    setInvoices([]);
+    localStorage.removeItem("products");
+    localStorage.removeItem("clients");
+    localStorage.removeItem("invoices");
+    
+    toast({
+      title: "Base de datos reiniciada",
+      description: "Se han eliminado todos los datos almacenados."
+    });
   };
 
   // Funciones para productos
@@ -391,7 +288,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     deleteInvoice,
     generateProductId,
     generateClientId,
-    generateInvoiceId
+    generateInvoiceId,
+    resetDatabase
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

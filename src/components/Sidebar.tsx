@@ -11,7 +11,16 @@ import {
   BarChart,
   Settings,
   X,
+  LogOut,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -29,6 +38,13 @@ const navItems = [
 
 export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   const location = useLocation();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
   
   return (
     <aside
@@ -45,7 +61,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           )}
         >
           <span className="text-primary">Factura</span>
-          <span className="text-foreground">Prueba</span>
+          <span className="text-foreground">DOM</span>
         </h2>
         <Button 
           onClick={() => setIsOpen(false)} 
@@ -58,42 +74,75 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
       </div>
       
       <nav className="p-2 space-y-1">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center px-4 py-3 rounded-lg transition-all duration-200",
-                isActive 
-                  ? "bg-primary/10 text-primary font-medium" 
-                  : "text-foreground hover:bg-muted",
-                !isOpen && "justify-center"
-              )}
-            >
-              <item.icon className={cn(
-                "h-5 w-5 transition-transform", 
-                isActive ? "text-primary" : "text-muted-foreground",
-                !isOpen && "transform-gpu scale-110"
-              )} />
-              {isOpen && (
-                <span 
-                  className={cn(
-                    "ml-3 transition-opacity duration-300",
-                    isActive ? "opacity-100 font-medium" : "opacity-80"
-                  )}
-                >
-                  {item.name}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+        <TooltipProvider delayDuration={0}>
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Tooltip key={item.path}>
+                <TooltipTrigger asChild>
+                  <Link
+                    to={item.path}
+                    className={cn(
+                      "flex items-center px-4 py-3 rounded-lg transition-all duration-200",
+                      isActive 
+                        ? "bg-primary/10 text-primary font-medium" 
+                        : "text-foreground hover:bg-muted",
+                      !isOpen && "justify-center md:justify-center"
+                    )}
+                  >
+                    <item.icon className={cn(
+                      "h-5 w-5 transition-transform", 
+                      isActive ? "text-primary" : "text-muted-foreground",
+                      !isOpen && "transform-gpu scale-110"
+                    )} />
+                    {isOpen && (
+                      <span 
+                        className={cn(
+                          "ml-3 transition-opacity duration-300",
+                          isActive ? "opacity-100 font-medium" : "opacity-80"
+                        )}
+                      >
+                        {item.name}
+                      </span>
+                    )}
+                  </Link>
+                </TooltipTrigger>
+                {!isOpen && (
+                  <TooltipContent side="right">
+                    {item.name}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            );
+          })}
+        </TooltipProvider>
       </nav>
       
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full flex items-center px-4 py-3 rounded-lg mt-auto mb-4 text-destructive hover:bg-destructive/10",
+                !isOpen && "justify-center"
+              )}
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5" />
+              {isOpen && <span className="ml-3">Cerrar Sesión</span>}
+            </Button>
+          </TooltipTrigger>
+          {!isOpen && (
+            <TooltipContent side="right">
+              Cerrar Sesión
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
+      
       <div className={cn(
-        "absolute bottom-4 left-0 right-0 px-4 transition-opacity", 
+        "mb-4 px-4 transition-opacity", 
         isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
       )}>
         <div className="bg-muted/50 rounded-lg p-4 text-center text-sm">

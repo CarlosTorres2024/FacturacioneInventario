@@ -5,148 +5,127 @@
 
 @layer base {
   :root {
-    /* Base colors */
-    --background: 210 40% 98%;
+    /* Light theme colors */
+    --background: 0 0% 100%;
     --foreground: 222 47% 11%;
     
-    /* Card styles */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     
-    /* Popover styles */
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
     
-    /* Primary - Teal */
-    --primary: 180 70% 45%;
+    --primary: 226 70% 40%;
     --primary-foreground: 210 40% 98%;
     
-    /* Secondary - Navy */
-    --secondary: 215 50% 23%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
     
-    /* Muted elements */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
     
-    /* Accent elements */
-    --accent: 180 70% 94%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
     
-    /* Destructive elements */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     
-    /* Border and inputs */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 180 70% 45%;
+    --ring: 226 70% 40%;
 
-    --radius: 0.75rem;
+    /* Custom sidebar colors for light mode */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 226 70% 40%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 212.7 26.8% 83.9%;
+    
+    --radius: 0.5rem;
   }
-  
+ 
   .dark {
-    /* Base colors */
+    /* Dark theme colors */
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
     
-    /* Card styles */
     --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
     
-    /* Popover styles */
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
     
-    /* Primary - Teal darker theme */
-    --primary: 180 70% 45%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222 47% 11%;
     
-    /* Secondary - Navy */
-    --secondary: 217 33% 17%;
+    --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     
-    /* Muted elements */
-    --muted: 217 33% 17%;
+    --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
     
-    /* Accent elements */
-    --accent: 217 33% 17%;
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
     
-    /* Destructive elements */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     
-    /* Border and inputs */
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 180 70% 45%;
-  }
-}
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
 
-@layer base {
+    /* Custom sidebar colors for dark mode (lighter than background) */
+    --sidebar-background: 217 33% 14%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217.2 91.2% 59.8%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 215.4 16.3% 46.9%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 224.3 76.3% 48%;
+  }
+
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-sans text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
-  
-  /* Animation classes */
+}
+
+@layer components {
   .animate-in {
-    animation: fadeIn 0.5s ease-out forwards, slideIn 0.5s ease-out forwards;
+    animation: fadeIn 0.3s ease-out forwards, slideIn 0.3s ease-out forwards;
   }
-  
-  .slide-in {
-    animation: slideIn 0.5s ease-out forwards;
-  }
-  
-  .scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
-  }
-  
-  .fade-up {
-    animation: fadeUp 0.5s ease-out forwards;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes slideIn {
-    from { transform: translateY(20px); }
-    to { transform: translateY(0); }
-  }
-  
-  @keyframes scaleIn {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-  
-  @keyframes fadeUp {
-    from { transform: translateY(10px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-  
-  /* Card hover effect */
-  .card-hover {
-    @apply transition-all duration-300 hover:shadow-md hover:-translate-y-1;
-  }
-  
-  /* Button hover animation */
-  .btn-hover {
-    @apply relative overflow-hidden transition-all duration-300;
-  }
-  
-  .btn-hover::after {
-    content: '';
-    @apply absolute w-full h-full top-0 left-0 bg-white/20 scale-x-0 transition-transform origin-left;
-  }
-  
-  .btn-hover:hover::after {
-    @apply scale-x-100;
-  }
+}
+
+/* Estilo para la típica tabla DOM */
+.dom-table {
+  @apply w-full border-collapse;
+}
+
+.dom-table th {
+  @apply bg-muted text-left px-3 py-2 text-sm;
+}
+
+.dom-table td {
+  @apply border-t px-3 py-2 text-sm;
+}
+
+.dom-table tr:hover {
+  @apply bg-muted/40;
+}
+
+/* Estilos específicos para Facturación Dominicana */
+.ncf-label {
+  @apply inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/30 dark:text-blue-400;
+}
+
+.fiscal-tag {
+  @apply inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-400;
 }
