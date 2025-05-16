@@ -60,7 +60,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
             isOpen ? "opacity-100" : "opacity-0 md:opacity-0"
           )}
         >
-          <span className="text-primary">Factura</span>
+          <span className="text-primary">Prueba</span>
           <span className="text-foreground">DOM</span>
         </h2>
         <Button 
