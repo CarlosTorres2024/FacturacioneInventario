@@ -1,417 +1,399 @@
+
 import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  FileText,
-  FileSpreadsheet,
-  FileIcon,
-  Calendar,
-  CreditCard,
-  Package,
-  Users,
-  Download,
-  List,
-  BarChart3,
-  PieChart,
-  LineChart,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
 import { useAppContext } from "@/contexts/AppContext";
+import { FileText, Download, BarChart3 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
 
 const Reports = () => {
-  const [reportType, setReportType] = useState("sales");
-  const [timeRange, setTimeRange] = useState("month");
-  const [exportFormat, setExportFormat] = useState("excel");
-  
   const { products, clients, invoices } = useAppContext();
-  
-  const handleExport = () => {
-    // Simulación de exportación
-    toast({
-      title: "Exportando reporte",
-      description: `Preparando reporte de ${getReportName()} en formato ${exportFormat.toUpperCase()}`,
+  const [activeTab, setActiveTab] = useState("sales");
+
+  const handleExportCsv = (reportType: string) => {
+    let data: any[] = [];
+    let filename = "";
+    let headers: string[] = [];
+
+    if (reportType === "sales") {
+      data = invoices.map(invoice => ({
+        id: invoice.id,
+        cliente: invoice.client,
+        fecha: invoice.date,
+        total: invoice.total,
+        estado: invoice.status
+      }));
+      headers = ["ID", "Cliente", "Fecha", "Total", "Estado"];
+      filename = "reporte-ventas.csv";
+    } else if (reportType === "inventory") {
+      data = products.map(product => ({
+        id: product.id,
+        nombre: product.name,
+        categoria: product.category,
+        stock: product.stock,
+        precio: product.price,
+        estado: product.status
+      }));
+      headers = ["ID", "Nombre", "Categoría", "Stock", "Precio", "Estado"];
+      filename = "reporte-inventario.csv";
+    } else if (reportType === "clients") {
+      data = clients.map(client => ({
+        id: client.id,
+        nombre: client.name,
+        email: client.email,
+        telefono: client.phone,
+        direccion: client.address,
+        compras: client.totalPurchases
+      }));
+      headers = ["ID", "Nombre", "Email", "Teléfono", "Dirección", "Compras Totales"];
+      filename = "reporte-clientes.csv";
+    }
+
+    if (data.length === 0) {
+      return;
+    }
+
+    // Crear contenido CSV
+    const csvContent = [
+      headers.join(","),
+      ...data.map(row => Object.values(row).join(","))
+    ].join("\n");
+
+    // Crear y descargar archivo
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Preparar datos para gráficos
+  const prepareChartData = () => {
+    // Agrupar ventas por mes
+    const salesByMonth: {[key: string]: number} = {};
+    
+    invoices.forEach(invoice => {
+      const date = new Date(invoice.date);
+      const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
+      
+      if (salesByMonth[monthYear]) {
+        salesByMonth[monthYear] += invoice.total;
+      } else {
+        salesByMonth[monthYear] = invoice.total;
+      }
     });
     
-    setTimeout(() => {
-      toast({
-        title: "Reporte generado",
-        description: `El reporte de ${getReportName()} ha sido generado correctamente.`,
-      });
-    }, 1500);
+    return Object.keys(salesByMonth).map(month => ({
+      month,
+      total: salesByMonth[month]
+    }));
   };
-  
-  const getReportName = () => {
-    const reportNames: {[key: string]: string} = {
-      "sales": "ventas",
-      "inventory": "inventario",
-      "clients": "clientes",
-      "finances": "finanzas"
-    };
+
+  // Datos para el gráfico de categorías
+  const prepareCategoryData = () => {
+    const categoryCounts: {[key: string]: number} = {};
     
-    return reportNames[reportType] || reportType;
+    products.forEach(product => {
+      if (categoryCounts[product.category]) {
+        categoryCounts[product.category]++;
+      } else {
+        categoryCounts[product.category] = 1;
+      }
+    });
+    
+    return Object.keys(categoryCounts).map(category => ({
+      name: category,
+      count: categoryCounts[category]
+    }));
   };
-  
-  const getExportIcon = () => {
-    switch (exportFormat) {
-      case "excel":
-        return <FileSpreadsheet className="h-4 w-4" />;
-      case "pdf":
-        return <FileIcon className="h-4 w-4" />;
-      case "csv":
-        return <FileText className="h-4 w-4" />;
-      default:
-        return <Download className="h-4 w-4" />;
-    }
-  };
-  
-  const renderContent = () => {
-    switch (reportType) {
-      case "sales":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Facturas emitidas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{invoices.length}</div>
-                  <p className="text-muted-foreground text-sm">Total de documentos</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Ventas realizadas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    RD$ {invoices.reduce((sum, inv) => sum + inv.total, 0).toLocaleString()}
-                  </div>
-                  <p className="text-muted-foreground text-sm">Monto total</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Promedio por factura</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    RD$ {invoices.length > 0 
-                      ? (invoices.reduce((sum, inv) => sum + inv.total, 0) / invoices.length).toFixed(2) 
-                      : "0.00"}
-                  </div>
-                  <p className="text-muted-foreground text-sm">Valor medio</p>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="border rounded-lg p-6 bg-muted/20">
-              <div className="flex items-center justify-center h-52">
-                <div className="text-center text-muted-foreground">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-2" />
-                  <p>El reporte de ventas será generado al exportar</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case "inventory":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Total productos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{products.length}</div>
-                  <p className="text-muted-foreground text-sm">En inventario</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Valor de inventario</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    RD$ {products.reduce((sum, prod) => sum + (prod.price * prod.stock), 0).toLocaleString()}
-                  </div>
-                  <p className="text-muted-foreground text-sm">Valor total</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Bajo stock</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {products.filter(p => p.status === "Bajo Stock" || p.status === "Sin Stock").length}
-                  </div>
-                  <p className="text-muted-foreground text-sm">Productos para reordenar</p>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="border rounded-lg p-6 bg-muted/20">
-              <div className="flex items-center justify-center h-52">
-                <div className="text-center text-muted-foreground">
-                  <PieChart className="h-12 w-12 mx-auto mb-2" />
-                  <p>El reporte de inventario será generado al exportar</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case "clients":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Total clientes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{clients.length}</div>
-                  <p className="text-muted-foreground text-sm">Registrados en sistema</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Compras acumuladas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    RD$ {clients.reduce((sum, client) => sum + client.totalPurchases, 0).toLocaleString()}
-                  </div>
-                  <p className="text-muted-foreground text-sm">Total histórico</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Promedio por cliente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    RD$ {clients.length > 0 
-                      ? (clients.reduce((sum, client) => sum + client.totalPurchases, 0) / clients.length).toFixed(2) 
-                      : "0.00"}
-                  </div>
-                  <p className="text-muted-foreground text-sm">Valor medio</p>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="border rounded-lg p-6 bg-muted/20">
-              <div className="flex items-center justify-center h-52">
-                <div className="text-center text-muted-foreground">
-                  <List className="h-12 w-12 mx-auto mb-2" />
-                  <p>El reporte de clientes será generado al exportar</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case "finances":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Ingresos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    RD$ {invoices
-                      .filter(inv => inv.status === "Pagada")
-                      .reduce((sum, inv) => sum + inv.total, 0)
-                      .toLocaleString()}
-                  </div>
-                  <p className="text-muted-foreground text-sm">Facturas pagadas</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Pendiente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    RD$ {invoices
-                      .filter(inv => inv.status === "Pendiente")
-                      .reduce((sum, inv) => sum + inv.total, 0)
-                      .toLocaleString()}
-                  </div>
-                  <p className="text-muted-foreground text-sm">Por cobrar</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Facturas canceladas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {invoices.filter(inv => inv.status === "Cancelada").length}
-                  </div>
-                  <p className="text-muted-foreground text-sm">Anuladas</p>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="border rounded-lg p-6 bg-muted/20">
-              <div className="flex items-center justify-center h-52">
-                <div className="text-center text-muted-foreground">
-                  <LineChart className="h-12 w-12 mx-auto mb-2" />
-                  <p>El reporte financiero será generado al exportar</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-  
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Reportes</h2>
         <p className="text-muted-foreground">
-          Genera y exporta reportes de tu negocio
+          Genera y visualiza reportes de tu negocio
         </p>
       </div>
       
-      <div className="flex flex-col space-y-4">
-        <Tabs defaultValue="sales" value={reportType} onValueChange={setReportType}>
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <TabsList>
-              <TabsTrigger value="sales" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" /> 
-                <span className="hidden md:inline">Ventas</span>
-              </TabsTrigger>
-              <TabsTrigger value="inventory" className="flex items-center gap-2">
-                <Package className="h-4 w-4" /> 
-                <span className="hidden md:inline">Inventario</span>
-              </TabsTrigger>
-              <TabsTrigger value="clients" className="flex items-center gap-2">
-                <Users className="h-4 w-4" /> 
-                <span className="hidden md:inline">Clientes</span>
-              </TabsTrigger>
-              <TabsTrigger value="finances" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" /> 
-                <span className="hidden md:inline">Finanzas</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <div className="flex flex-wrap gap-2">
-              <div className="w-full md:w-auto">
-                <Select value={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="w-full md:w-40">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <SelectValue placeholder="Periodo" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Hoy</SelectItem>
-                    <SelectItem value="week">Esta semana</SelectItem>
-                    <SelectItem value="month">Este mes</SelectItem>
-                    <SelectItem value="quarter">Este trimestre</SelectItem>
-                    <SelectItem value="year">Este año</SelectItem>
-                    <SelectItem value="all">Todo el tiempo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="w-full md:w-auto">
-                <Select value={exportFormat} onValueChange={setExportFormat}>
-                  <SelectTrigger className="w-full md:w-40">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      <SelectValue placeholder="Formato" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="excel">Excel</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="csv">CSV</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <Button onClick={handleExport} className="w-full md:w-auto gap-2">
-                {getExportIcon()}
-                <span>Exportar</span>
-              </Button>
-            </div>
-          </div>
-          
-          <div className="mt-6">
-            <TabsContent value="sales" className="mt-0">
-              <Card>
-                <CardHeader>
+      <Tabs 
+        defaultValue="sales" 
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
+        <TabsList>
+          <TabsTrigger value="sales" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span>Ventas</span>
+          </TabsTrigger>
+          <TabsTrigger value="inventory" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span>Inventario</span>
+          </TabsTrigger>
+          <TabsTrigger value="clients" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span>Clientes</span>
+          </TabsTrigger>
+          <TabsTrigger value="charts" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span>Gráficos</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="sales" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
                   <CardTitle>Reporte de Ventas</CardTitle>
                   <CardDescription>
-                    Analiza las ventas realizadas en el periodo seleccionado
+                    {invoices.length} facturas registradas
                   </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderContent()}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="inventory" className="mt-0">
-              <Card>
-                <CardHeader>
+                </div>
+                <Button 
+                  onClick={() => handleExportCsv("sales")}
+                  className="flex items-center gap-2 md:self-end"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Exportar CSV</span>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {invoices.length > 0 ? (
+                <div className="border rounded-md overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-muted/50">
+                        <th className="text-left p-3">ID</th>
+                        <th className="text-left p-3">Cliente</th>
+                        <th className="text-left p-3">Fecha</th>
+                        <th className="text-right p-3">Total</th>
+                        <th className="text-right p-3">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoices.map(invoice => (
+                        <tr key={invoice.id} className="border-t hover:bg-muted/50">
+                          <td className="p-3">{invoice.id}</td>
+                          <td className="p-3">{invoice.client}</td>
+                          <td className="p-3">{invoice.date}</td>
+                          <td className="p-3 text-right">RD${invoice.total.toFixed(2)}</td>
+                          <td className="p-3 text-right">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              invoice.status === "Pagada" 
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+                                : invoice.status === "Pendiente" 
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" 
+                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                            }`}>
+                              {invoice.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center p-8 text-muted-foreground">
+                  No hay facturas registradas
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="inventory" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
                   <CardTitle>Reporte de Inventario</CardTitle>
                   <CardDescription>
-                    Analiza el estado actual del inventario y la rotación de productos
+                    {products.length} productos registrados
                   </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderContent()}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="clients" className="mt-0">
-              <Card>
-                <CardHeader>
+                </div>
+                <Button 
+                  onClick={() => handleExportCsv("inventory")}
+                  className="flex items-center gap-2 md:self-end"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Exportar CSV</span>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {products.length > 0 ? (
+                <div className="border rounded-md overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-muted/50">
+                        <th className="text-left p-3">ID</th>
+                        <th className="text-left p-3">Nombre</th>
+                        <th className="text-left p-3">Categoría</th>
+                        <th className="text-right p-3">Stock</th>
+                        <th className="text-right p-3">Precio</th>
+                        <th className="text-right p-3">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {products.map(product => (
+                        <tr key={product.id} className="border-t hover:bg-muted/50">
+                          <td className="p-3">{product.id}</td>
+                          <td className="p-3">{product.name}</td>
+                          <td className="p-3">{product.category}</td>
+                          <td className="p-3 text-right">{product.stock}</td>
+                          <td className="p-3 text-right">RD${product.price.toFixed(2)}</td>
+                          <td className="p-3 text-right">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              product.status === "Disponible" 
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+                                : product.status === "Bajo Stock" 
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" 
+                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                            }`}>
+                              {product.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center p-8 text-muted-foreground">
+                  No hay productos registrados
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="clients" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
                   <CardTitle>Reporte de Clientes</CardTitle>
                   <CardDescription>
-                    Analiza los clientes y sus compras en el periodo seleccionado
+                    {clients.length} clientes registrados
                   </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderContent()}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+                <Button 
+                  onClick={() => handleExportCsv("clients")}
+                  className="flex items-center gap-2 md:self-end"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Exportar CSV</span>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {clients.length > 0 ? (
+                <div className="border rounded-md overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-muted/50">
+                        <th className="text-left p-3">ID</th>
+                        <th className="text-left p-3">Nombre</th>
+                        <th className="text-left p-3">Email</th>
+                        <th className="text-left p-3">Teléfono</th>
+                        <th className="text-right p-3">Compras Totales</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {clients.map(client => (
+                        <tr key={client.id} className="border-t hover:bg-muted/50">
+                          <td className="p-3">{client.id}</td>
+                          <td className="p-3">{client.name}</td>
+                          <td className="p-3">{client.email}</td>
+                          <td className="p-3">{client.phone}</td>
+                          <td className="p-3 text-right">RD${client.totalPurchases.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center p-8 text-muted-foreground">
+                  No hay clientes registrados
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="charts" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Ventas por Mes</CardTitle>
+                <CardDescription>
+                  Total de ventas agrupadas por mes
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                {invoices.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={prepareChartData()} margin={{ top: 5, right: 20, bottom: 20, left: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`RD$${Number(value).toFixed(2)}`, 'Total']} />
+                      <Legend />
+                      <Line type="monotone" dataKey="total" stroke="#8884d8" name="Ventas" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    No hay datos suficientes para generar el gráfico
+                  </div>
+                )}
+              </CardContent>
+            </Card>
             
-            <TabsContent value="finances" className="mt-0">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Reporte Financiero</CardTitle>
-                  <CardDescription>
-                    Analiza las finanzas y flujo de caja en el periodo seleccionado
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderContent()}
-                </CardContent>
-              </Card>
-            </TabsContent>
+            <Card>
+              <CardHeader>
+                <CardTitle>Productos por Categoría</CardTitle>
+                <CardDescription>
+                  Distribución de productos por categoría
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                {products.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={prepareCategoryData()} margin={{ top: 5, right: 20, bottom: 20, left: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="count" fill="#82ca9d" name="Cantidad" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    No hay datos suficientes para generar el gráfico
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        </Tabs>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
