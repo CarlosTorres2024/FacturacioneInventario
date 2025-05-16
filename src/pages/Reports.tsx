@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FileText,
   FileSpreadsheet,
-  FilePdf,
+  FileIcon,
   Calendar,
   CreditCard,
   Package,
@@ -65,7 +64,7 @@ const Reports = () => {
       case "excel":
         return <FileSpreadsheet className="h-4 w-4" />;
       case "pdf":
-        return <FilePdf className="h-4 w-4" />;
+        return <FileIcon className="h-4 w-4" />;
       case "csv":
         return <FileText className="h-4 w-4" />;
       default:
