@@ -3,17 +3,20 @@ import * as React from "react"
 
 import type {
   ToastActionElement,
-  ToastProps,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 5
 const TOAST_REMOVE_DELAY = 1000000
 
-type ToasterToastProps = ToastProps & {
+// Define the props type first without circular references
+interface BaseToastProps {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  variant?: "default" | "destructive" | "warning"
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const actionTypes = {
@@ -35,11 +38,11 @@ type ActionType = typeof actionTypes
 type Action =
   | {
       type: ActionType["ADD_TOAST"]
-      toast: ToasterToastProps
+      toast: BaseToastProps
     }
   | {
       type: ActionType["UPDATE_TOAST"]
-      toast: Partial<ToasterToastProps>
+      toast: Partial<BaseToastProps>
     }
   | {
       type: ActionType["DISMISS_TOAST"]
@@ -51,7 +54,7 @@ type Action =
     }
 
 interface State {
-  toasts: ToasterToastProps[]
+  toasts: BaseToastProps[]
 }
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
@@ -138,12 +141,13 @@ function dispatch(action: Action) {
   })
 }
 
-type ToastProps = Omit<ToasterToastProps, "id">
+// Define a separate type for input props to avoid circular references
+type ToastInputProps = Omit<BaseToastProps, "id">
 
-function toast({ ...props }: ToastProps) {
+function toast({ ...props }: ToastInputProps) {
   const id = genId()
 
-  const update = (props: ToasterToastProps) =>
+  const update = (props: BaseToastProps) =>
     dispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
