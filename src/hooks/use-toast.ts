@@ -6,9 +6,9 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 5
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 5000
 
-// Define the props type first without circular references
+// Define las props base del toast sin referencias circulares
 interface BaseToastProps {
   id: string
   title?: React.ReactNode
@@ -17,6 +17,7 @@ interface BaseToastProps {
   variant?: "default" | "destructive" | "warning"
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  duration?: number
 }
 
 const actionTypes = {
@@ -141,18 +142,27 @@ function dispatch(action: Action) {
   })
 }
 
-// Define a separate type for input props to avoid circular references
+// Define el tipo de los props para la entrada
 type ToastInputProps = Omit<BaseToastProps, "id">
 
 function toast({ ...props }: ToastInputProps) {
   const id = genId()
+  
+  // Establecer duración predeterminada si no se proporciona
+  const duration = props.duration ?? 5000;
 
-  const update = (props: BaseToastProps) =>
+  const update = (props: Partial<BaseToastProps>) =>
     dispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
     })
+    
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+  
+  // Configurar un temporizador para descartar automáticamente
+  if (duration !== Infinity) {
+    setTimeout(dismiss, duration);
+  }
 
   dispatch({
     type: "ADD_TOAST",
@@ -160,6 +170,7 @@ function toast({ ...props }: ToastInputProps) {
       ...props,
       id,
       open: true,
+      duration,
       onOpenChange: (open) => {
         if (!open) dismiss()
       },

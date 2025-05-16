@@ -39,7 +39,8 @@ export const useStockAlerts = () => {
         toast({
           title: `¡Alerta! ${noStock.length} productos sin stock`,
           description: `${noStock.map(p => p.name).join(", ")}`,
-          variant: "destructive"
+          variant: "destructive",
+          duration: 5000,
         });
         playAlertSound();
       }
@@ -50,7 +51,8 @@ export const useStockAlerts = () => {
           toast({
             title: `¡Alerta! ${lowStock.length} productos con bajo stock`,
             description: `${lowStock.map(p => p.name).join(", ")}`,
-            variant: "warning"
+            variant: "warning",
+            duration: 5000,
           });
           playAlertSound();
         }, noStock.length > 0 ? 1000 : 0); // Si hay alerta de sin stock, retrasamos esta

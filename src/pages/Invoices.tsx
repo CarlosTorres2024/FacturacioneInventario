@@ -43,9 +43,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, FileText, Trash, Eye } from "lucide-react";
+import { Plus, Search, FileText, Trash, Eye, ArrowDown } from "lucide-react";
 import { InvoiceForm } from "@/components/invoices/InvoiceForm";
 import { useAppContext, Invoice } from "@/contexts/AppContext";
+import { exportInvoiceToPDF } from "@/utils/pdfExport";
 
 export const Invoices = () => {
   const { invoices, addInvoice, updateInvoice, deleteInvoice } = useAppContext();
@@ -91,6 +92,10 @@ export const Invoices = () => {
         status
       });
     }
+  };
+
+  const handleExportToPDF = (invoice: Invoice) => {
+    exportInvoiceToPDF(invoice);
   };
 
   return (
@@ -187,6 +192,16 @@ export const Invoices = () => {
                   <div className="font-medium mb-2">Total</div>
                   <div className="text-2xl font-bold">${showInvoiceDetails.total.toFixed(2)}</div>
                 </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={() => handleExportToPDF(showInvoiceDetails)}
+                    className="bg-blue-600 hover:bg-blue-700 gap-2"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                    Exportar a PDF
+                  </Button>
+                </div>
               </div>
             )}
           </DialogContent>
@@ -262,6 +277,14 @@ export const Invoices = () => {
                             onClick={() => setShowInvoiceDetails(invoice)}
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleExportToPDF(invoice)}
+                            className="text-blue-600"
+                          >
+                            <ArrowDown className="h-4 w-4" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>

@@ -76,21 +76,10 @@ export const useAppContext = () => {
 
 // Provider component
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Cargar datos del localStorage si existen
-  const [products, setProducts] = useState<Product[]>(() => {
-    const savedProducts = localStorage.getItem("products");
-    return savedProducts ? JSON.parse(savedProducts) : initialProducts;
-  });
-  
-  const [clients, setClients] = useState<Client[]>(() => {
-    const savedClients = localStorage.getItem("clients");
-    return savedClients ? JSON.parse(savedClients) : initialClients;
-  });
-  
-  const [invoices, setInvoices] = useState<Invoice[]>(() => {
-    const savedInvoices = localStorage.getItem("invoices");
-    return savedInvoices ? JSON.parse(savedInvoices) : initialInvoices;
-  });
+  // Cargar datos del localStorage si existen, sino usar vacíos
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [clients, setClients] = useState<Client[]>(initialClients);
+  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
 
   // Guardar en localStorage cuando cambian los datos
   useEffect(() => {
