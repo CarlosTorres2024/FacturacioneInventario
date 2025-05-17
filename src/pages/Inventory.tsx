@@ -196,7 +196,7 @@ export const Inventory = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="price">Precio (MXN)</Label>
+                  <Label htmlFor="price">Precio (DO)</Label>
                   <Input 
                     id="price" 
                     type="number" 
@@ -260,7 +260,7 @@ export const Inventory = () => {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-price">Precio (MXN)</Label>
+                    <Label htmlFor="edit-price">Precio (DO)</Label>
                     <Input 
                       id="edit-price" 
                       type="number"
