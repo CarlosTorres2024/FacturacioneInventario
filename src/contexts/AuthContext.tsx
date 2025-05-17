@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error obteniendo el rol del usuario:", error);
@@ -84,13 +84,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
 
           setUser(authUser);
+          setLoading(false);
         }, 0);
       } catch (error) {
         console.error("Error actualizando el estado del usuario:", error);
         setUser(null);
+        setLoading(false);
       }
     } else {
       setUser(null);
+      setLoading(false);
     }
   };
 
@@ -99,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Configurar primero el listener de cambios de estado de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log("Auth state change event:", event);
         setSession(currentSession);
         
         // Solo actualizar el estado del usuario de forma sincrónica
@@ -115,12 +119,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         setLoading(true);
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log("Initial session:", currentSession);
         setSession(currentSession);
         
-        await updateUserState(currentSession);
+        if (currentSession) {
+          await updateUserState(currentSession);
+        } else {
+          setLoading(false);
+        }
       } catch (error) {
         console.error("Error inicializando la autenticación:", error);
-      } finally {
         setLoading(false);
       }
     };

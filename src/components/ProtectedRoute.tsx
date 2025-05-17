@@ -2,6 +2,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -22,6 +23,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
 
   // Redirigir a login si no está autenticado
   if (!isAuthorized()) {
+    console.log("No autorizado, redirigiendo a /login");
     return <Navigate to="/login" replace />;
   }
 
@@ -34,12 +36,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
         description: "No tienes permiso para acceder a esta página",
         variant: "destructive",
       });
+      console.log("Rol no permitido, redirigiendo a /");
       return <Navigate to="/" replace />;
     }
   }
 
+  console.log("Usuario autorizado con rol:", user?.role);
   return <>{children}</>;
 };
-
-// Importación necesaria para los toasts
-import { toast } from "@/hooks/use-toast";

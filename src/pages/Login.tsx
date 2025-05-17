@@ -20,10 +20,11 @@ const Login = () => {
 
   // Redirigir si ya está autenticado
   useEffect(() => {
-    if (isAuthorized()) {
+    if (isAuthorized() && user) {
+      console.log("Usuario ya autenticado:", user);
       navigate("/");
     }
-  }, [isAuthorized, navigate]);
+  }, [isAuthorized, navigate, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
