@@ -2,7 +2,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
@@ -37,7 +37,7 @@ const App = () => (
               } />
               
               <Route path="/inventory" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["admin", "supervisor", "cajero"]}>
                   <Layout>
                     <Inventory />
                   </Layout>
@@ -45,7 +45,7 @@ const App = () => (
               } />
               
               <Route path="/clients" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["admin", "supervisor"]}>
                   <Layout>
                     <Clients />
                   </Layout>
@@ -53,7 +53,7 @@ const App = () => (
               } />
               
               <Route path="/invoices" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["admin", "supervisor", "cajero"]}>
                   <Layout>
                     <Invoices />
                   </Layout>
@@ -61,7 +61,7 @@ const App = () => (
               } />
               
               <Route path="/reports" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["admin", "supervisor"]}>
                   <Layout>
                     <Reports />
                   </Layout>
@@ -69,7 +69,7 @@ const App = () => (
               } />
               
               <Route path="/settings" element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["admin"]}>
                   <Layout>
                     <Settings />
                   </Layout>

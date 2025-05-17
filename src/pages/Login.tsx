@@ -7,14 +7,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { LockKeyhole, Mail } from "lucide-react";
+import { LockKeyhole, Mail, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { login, isAuthorized } = useAuth();
+  const { login, isAuthorized, user } = useAuth();
 
   // Redirigir si ya está autenticado
   useEffect(() => {
@@ -25,20 +27,27 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     if (!email || !password) {
+      setError("Por favor, completa todos los campos");
       return;
     }
     
     setIsSubmitting(true);
     
-    const success = await login(email, password);
-    
-    if (success) {
-      navigate("/");
+    try {
+      const success = await login(email, password);
+      
+      if (success) {
+        navigate("/");
+      }
+    } catch (err) {
+      setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
 
   return (
@@ -56,6 +65,13 @@ const Login = () => {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
               <div className="relative">
@@ -74,9 +90,6 @@ const Login = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Contraseña</Label>
-                <Button variant="link" className="text-xs p-0 h-auto font-normal">
-                  ¿Olvidaste tu contraseña?
-                </Button>
               </div>
               <div className="relative">
                 <LockKeyhole className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
@@ -103,12 +116,10 @@ const Login = () => {
         </form>
         <div className="p-4 pt-0 text-center text-sm">
           <p className="text-muted-foreground">
-            Usuarios de demo:
+            Sistema de Facturación e Inventario
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            admin@example.com / admin123<br />
-            supervisor@example.com / super123<br />
-            cajero@example.com / cajero123
+          <p className="text-xs mt-1 text-muted-foreground/70">
+            Acceso solo para usuarios autorizados
           </p>
         </div>
       </Card>

@@ -5,10 +5,11 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  allowedRoles?: ("admin" | "supervisor" | "cajero")[];
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthorized, loading } = useAuth();
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+  const { isAuthorized, loading, user } = useAuth();
 
   // Si está cargando, mostramos un indicador de carga
   if (loading) {
@@ -24,5 +25,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
+  // Verificar el rol si se especifica
+  if (allowedRoles && user && user.role) {
+    if (!allowedRoles.includes(user.role)) {
+      // Si el usuario no tiene un rol permitido, redirigir a una página de acceso denegado o dashboard
+      toast({
+        title: "Acceso denegado",
+        description: "No tienes permiso para acceder a esta página",
+        variant: "destructive",
+      });
+      return <Navigate to="/" replace />;
+    }
+  }
+
   return <>{children}</>;
 };
+
+// Importación necesaria para los toasts
+import { toast } from "@/hooks/use-toast";
