@@ -9,10 +9,13 @@ interface ProtectedRouteProps {
   allowedRoles?: ("admin" | "supervisor" | "cajero")[];
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  allowedRoles 
+}) => {
   const { isAuthorized, loading, user } = useAuth();
 
-  // Si está cargando, mostramos un indicador de carga
+  // Mostrar indicador de carga mientras se verifica la autenticación
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -21,26 +24,24 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     );
   }
 
-  // Redirigir a login si no está autenticado
+  // Verificar si el usuario está autenticado
   if (!isAuthorized()) {
-    console.log("No autorizado, redirigiendo a /login");
+    console.log("Usuario no autenticado, redirigiendo a /login");
     return <Navigate to="/login" replace />;
   }
 
-  // Verificar el rol si se especifica
-  if (allowedRoles && user && user.role) {
+  // Verificar si el usuario tiene el rol permitido
+  if (allowedRoles && user?.role) {
     if (!allowedRoles.includes(user.role)) {
-      // Si el usuario no tiene un rol permitido, redirigir a una página de acceso denegado o dashboard
       toast({
         title: "Acceso denegado",
         description: "No tienes permiso para acceder a esta página",
         variant: "destructive",
       });
-      console.log("Rol no permitido, redirigiendo a /");
+      console.log(`Acceso denegado para rol ${user.role}, redirigiendo a /`);
       return <Navigate to="/" replace />;
     }
   }
 
-  console.log("Usuario autorizado con rol:", user?.role);
   return <>{children}</>;
 };

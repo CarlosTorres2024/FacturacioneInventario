@@ -16,6 +16,7 @@ import { AppProvider } from "./contexts/AppContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
+// Configuración del cliente de consulta para optimizar las solicitudes de datos
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -33,8 +34,10 @@ const App = () => (
           <Toaster />
           <BrowserRouter>
             <Routes>
+              {/* Ruta pública */}
               <Route path="/login" element={<Login />} />
               
+              {/* Rutas protegidas por autenticación y roles */}
               <Route path="/" element={
                 <ProtectedRoute>
                   <Layout>
@@ -83,6 +86,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               
+              {/* Ruta para manejar páginas no encontradas */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

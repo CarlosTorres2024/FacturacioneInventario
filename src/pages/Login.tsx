@@ -45,7 +45,7 @@ const Login = () => {
       }
     } catch (err) {
       setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
-      console.error(err);
+      console.error("Error de login:", err);
     } finally {
       setIsSubmitting(false);
     }
