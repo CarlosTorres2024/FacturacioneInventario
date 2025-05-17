@@ -22,7 +22,12 @@ export const useStockAlerts = () => {
   };
 
   useEffect(() => {
-    if (!products || products.length === 0) return;
+    // No mostrar alertas si no hay productos
+    if (!products || products.length === 0) {
+      setLowStockProducts([]);
+      setNoStockProducts([]);
+      return;
+    }
     
     const lowStock = products.filter(p => p.stock > 0 && p.stock <= 5);
     const noStock = products.filter(p => p.stock === 0);

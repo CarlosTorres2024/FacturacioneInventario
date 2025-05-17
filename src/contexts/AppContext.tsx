@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -77,9 +78,20 @@ export const useAppContext = () => {
 // Provider component
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Cargar datos del localStorage si existen, sino usar vacíos
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [clients, setClients] = useState<Client[]>(initialClients);
-  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  const [products, setProducts] = useState<Product[]>(() => {
+    const savedProducts = localStorage.getItem("products");
+    return savedProducts ? JSON.parse(savedProducts) : initialProducts;
+  });
+  
+  const [clients, setClients] = useState<Client[]>(() => {
+    const savedClients = localStorage.getItem("clients");
+    return savedClients ? JSON.parse(savedClients) : initialClients;
+  });
+  
+  const [invoices, setInvoices] = useState<Invoice[]>(() => {
+    const savedInvoices = localStorage.getItem("invoices");
+    return savedInvoices ? JSON.parse(savedInvoices) : initialInvoices;
+  });
 
   // Guardar en localStorage cuando cambian los datos
   useEffect(() => {
